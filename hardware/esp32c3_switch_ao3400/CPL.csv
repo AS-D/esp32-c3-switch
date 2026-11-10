@@ -1,0 +1,5 @@
+Designator,Mid X,Mid Y,Layer,Rotation,Comment
+C2,13.0,11.3,Top,90,100nF 0603
+R1,16.5,15.0,Top,0,100R 0603
+R2,18.0,13.5,Top,0,100k 0603
+Q1,19.5,15.833,Top,0,AO3400 SOT-23

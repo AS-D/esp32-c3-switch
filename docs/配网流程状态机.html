@@ -1,0 +1,93 @@
+<html style="margin:0;padding:0;">
+<title>ESP32-C3 远程开关 · WiFi 配网状态机</title>
+<div style="width:100%;box-sizing:border-box;font-family:'PingFang SC','Microsoft YaHei',system-ui,sans-serif;color:#1f2937;padding:18px 14px;background:#f7f9fc;">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="font-size:19px;font-weight:700;margin-bottom:4px;">ESP32-C3 智能开关 · WiFi 配网状态机</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:16px;">控制引脚 GPIO10 · 5V 输出通断 · 点灯 App 远程开关</div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;">
+
+      <!-- ============ 主流程 ============ -->
+      <div style="flex:1 1 380px;min-width:320px;">
+
+        <!-- 开始 -->
+        <div style="text-align:center;padding:9px 12px;border-radius:10px;border:2px solid #2e7d32;background:#e8f5e9;font-weight:700;font-size:15px;">上电启动</div>
+        <div class="a" style="height:24px;text-align:center;color:#9aa3af;font-size:12px;">▼</div>
+
+        <!-- 判断 -->
+        <div style="display:flex;justify-content:center;">
+          <div style="width:200px;height:200px;position:relative;">
+            <div style="position:absolute;inset:0;transform:rotate(45deg);border:2px solid #f59e0b;background:#fef3c7;border-radius:12px;"></div>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;text-align:center;line-height:1.5;padding:0 6px;">已保存<br>WiFi 配置？</div>
+          </div>
+        </div>
+        <div style="text-align:center;height:26px;color:#9aa3af;font-size:12px;">
+          <span style="background:#fff;padding:0 8px;">▼</span>
+        </div>
+
+        <!-- 是 → 直接连接 -->
+        <div style="position:relative;margin-bottom:26px;">
+          <div style="text-align:center;padding:9px 12px;border-radius:10px;border:2px solid #1a73e8;background:#e8f0fe;font-size:15px;font-weight:600;">读取配置 → 连接家庭 WiFi</div>
+          <div style="position:absolute;right:-26px;top:-14px;background:#fff;padding:2px 8px;border:1px solid #2e7d32;border-radius:20px;color:#2e7d32;font-size:13px;font-weight:600;">是</div>
+        </div>
+
+        <!-- 否 → AP 配网 -->
+        <div style="position:relative;border-left:3px dashed #f59e0b;padding-left:12px;margin:6px 0 10px 8px;">
+          <div style="position:absolute;left:-30px;top:-4px;background:#fff;padding:2px 8px;border:1px solid #d97706;border-radius:20px;color:#d97706;font-size:13px;font-weight:600;">否</div>
+          <div style="font-size:14px;font-weight:600;color:#b45309;margin-bottom:8px;">开启 AP 热点配网（仅未配网 / 连不上时触发）</div>
+          <div style="font-size:13px;color:#374151;line-height:1.7;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px;">
+            ① 热点名 <b>ESP32C3-Switch-XXXX</b>（MAC 后 4 位，默认开放）<br>
+            ② 手机连热点，浏览器打开 <b>http://192.168.4.1</b><br>
+            ③ 点「扫描网络」选 WiFi（或手动输入）＋ 输密码<br>
+            ④ 点「保存并连接」→ 配置写入 NVS
+          </div>
+        </div>
+
+        <!-- 连接结果 -->
+        <div style="text-align:center;height:26px;color:#9aa3af;font-size:12px;">▼</div>
+        <div style="position:relative;text-align:center;padding:9px 12px;border-radius:10px;border:2px solid #1a73e8;background:#e8f0fe;font-size:15px;font-weight:600;">连接家庭 WiFi（15 秒超时）</div>
+        <div style="display:flex;justify-content:center;height:26px;color:#9aa3af;font-size:12px;">
+          <span>▼</span>
+        </div>
+
+        <!-- 失败回退 -->
+        <div style="position:relative;margin-bottom:14px;">
+          <div style="text-align:center;padding:8px 12px;border-radius:10px;border:2px solid #c5221f;background:#fce8e6;font-size:14px;font-weight:600;">连接失败 → 回到「开启 AP 热点配网」</div>
+          <div style="position:absolute;left:-14px;top:-12px;background:#fff;padding:2px 8px;border:1px solid #c5221f;border-radius:20px;color:#c5221f;font-size:12px;font-weight:600;">超时/失败</div>
+        </div>
+
+        <!-- 成功 -->
+        <div style="text-align:center;height:26px;color:#9aa3af;font-size:12px;">▼</div>
+        <div style="text-align:center;padding:9px 12px;border-radius:10px;border:2px solid #2e7d32;background:#e8f5e9;font-size:15px;font-weight:700;">初始化点灯 Blinker → 设备上线</div>
+        <div style="text-align:center;height:24px;color:#9aa3af;font-size:12px;">▼</div>
+
+        <!-- App 控制 -->
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:13px;color:#374151;line-height:1.8;">
+          <b>点灯 App 远程控制：</b><br>
+          App 点「开」→ GPIO10 高电平 → 继电器/MOS 吸合 → <b style="color:#2e7d32;">5V 输出通电</b><br>
+          App 点「关」→ GPIO10 低电平 → 断开 → <b style="color:#c5221f;">5V 输出断电</b><br>
+          断电重启自动恢复上次开关状态（NVS 记忆）
+        </div>
+      </div>
+
+      <!-- ============ 右侧：运行中维护 ============ -->
+      <div style="flex:1 1 260px;min-width:240px;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px;">运行中维护</div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;font-size:13px;line-height:1.9;color:#374151;">
+          <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;"><b>WiFi 掉线</b> → 自动重连（已存配置）；<br>持续掉线 &gt; 2 分钟 → 重新开热点配网</div>
+          <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;"><b>配网超时</b>：热点开启 5 分钟无人配网 → 自动重启重新开热点</div>
+          <div style="padding:6px 0;border-bottom:1px dashed #e5e7eb;"><b>重新配网</b>：长按板载 BOOT 键 5 秒 → 擦除配置 → 重启进入配网</div>
+          <div style="padding:6px 0;"><b>核心逻辑</b>：<span style="color:#b45309;">只在“没配过网 / 连不上”时开热点</span>，配过网直接读取配置重连</div>
+        </div>
+        <div style="font-size:13px;color:#6b7280;margin-top:10px;line-height:1.7;">
+          图例：<span style="display:inline-block;width:12px;height:12px;background:#e8f0fe;border:2px solid #1a73e8;border-radius:4px;vertical-align:-1px;"></span> 连接动作　
+          <span style="display:inline-block;width:12px;height:12px;background:#fef3c7;border:2px solid #f59e0b;border-radius:4px;vertical-align:-1px;"></span> 判断/配网　
+          <span style="display:inline-block;width:12px;height:12px;background:#e8f5e9;border:2px solid #2e7d32;border-radius:4px;vertical-align:-1px;"></span> 成功状态　
+          <span style="display:inline-block;width:12px;height:12px;background:#fce8e6;border:2px solid #c5221f;border-radius:4px;vertical-align:-1px;"></span> 失败回退
+        </div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:8px;">示意：配网/重连状态机（对应 src/main.cpp + src/wifi_config.cpp 实现）</div>
+      </div>
+    </div>
+  </div>
+</div>
+</html>
